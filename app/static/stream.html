@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dual Camera Stream</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: black;
+      color: white;
+      height: 100vh;
+      width: 100vw;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 0;
+      flex: 1;
+    }
+
+    .camera {
+      object-fit: contain;
+      max-width: 48vw;
+      max-height: 100vh;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+    }
+
+    .vertical {
+      flex-direction: column;
+    }
+
+    .controls {
+      padding: 10px;
+      background: #111;
+      color: white;
+      display: flex;
+      gap: 20px;
+      align-items: center;
+    }
+
+    input[type="range"] {
+      width: 200px;
+    }
+  </style>
+</head>
+<body>
+  <div class="controls">
+    <label>간격: <span id="gapValue">0</span> px</label>
+    <input type="range" id="gapSlider" min="0" max="400" step="1" />
+    <label><input type="checkbox" id="distortedToggle" /> 좌우 반전</label>
+    <button id="saveBtn">저장</button>
+  </div>
+
+  <div id="app" class="container">
+    <img id="cam0" alt="Camera 0" class="camera" />
+    <img id="cam1" alt="Camera 1" class="camera" />
+  </div>
+
+  <script>
+    const cam0 = document.getElementById("cam0");
+    const cam1 = document.getElementById("cam1");
+    const gapSlider = document.getElementById("gapSlider");
+    const gapValue = document.getElementById("gapValue");
+    const distortedToggle = document.getElementById("distortedToggle");
+    const saveBtn = document.getElementById("saveBtn");
+    const app = document.getElementById("app");
+
+    let gap = 0;
+    let distorted = false;
+
+    const applyConfig = () => {
+      const halfGap = gap / 2;
+
+      cam0.style.marginRight = `${halfGap}px`;
+      cam1.style.marginLeft = `${halfGap}px`;
+
+      cam0.style.transform = distorted ? "scaleX(-1)" : "none";
+      cam1.style.transform = distorted ? "scaleX(-1)" : "none";
+
+      const isLandscape = window.innerWidth > window.innerHeight;
+      app.classList.toggle("vertical", !isLandscape);
+    };
+
+    window.addEventListener("resize", applyConfig);
+
+    const wsScheme = location.protocol === 'https:' ? 'wss' : 'ws';
+    const ws0 = new WebSocket(`${wsScheme}://${location.host}/ws/stream/0`);
+    const ws1 = new WebSocket(`${wsScheme}://${location.host}/ws/stream/1`);
+
+    ws0.onmessage = (event) => {
+      cam0.src = "data:image/jpeg;base64," + event.data;
+    };
+    ws1.onmessage = (event) => {
+      cam1.src = "data:image/jpeg;base64," + event.data;
+    };
+
+    document.body.addEventListener("click", () => {
+      const elem = document.documentElement;
+      if (elem.requestFullscreen) elem.requestFullscreen();
+      else if (elem.webkitRequestFullscreen) elem.webkitRequestFullscreen();
+      else if (elem.msRequestFullscreen) elem.msRequestFullscreen();
+    }, { once: true });
+
+    // 초기 설정 불러오기
+    async function fetchAndApplyConfig() {
+      try {
+        const res = await fetch("/config");
+        const config = await res.json();
+
+        gap = Number(config.gap) || 0;
+        distorted = config.distorted === true;
+
+        gapSlider.value = gap;
+        gapValue.textContent = gap;
+        distortedToggle.checked = distorted;
+
+        applyConfig();
+      } catch (e) {
+        console.error("Failed to fetch /config", e);
+      }
+    }
+
+    // 저장 버튼 클릭 → 서버에 POST 요청
+    saveBtn.addEventListener("click", async () => {
+      const formData = new FormData();
+      formData.append("gap", gapSlider.value);
+      formData.append("distorted", distortedToggle.checked);
+
+      try {
+        const res = await fetch("/config", {
+          method: "POST",
+          body: formData,
+        });
+        const result = await res.json();
+        console.log("Saved:", result);
+
+        gap = Number(gapSlider.value);
+        distorted = distortedToggle.checked;
+        gapValue.textContent = gap;
+
+        applyConfig();
+      } catch (e) {
+        console.error("Failed to save config", e);
+      }
+    });
+
+    // 슬라이더 변경 시 UI 실시간 업데이트
+    gapSlider.addEventListener("input", () => {
+      gap = Number(gapSlider.value);
+      gapValue.textContent = gap;
+      applyConfig();
+    });
+
+    distortedToggle.addEventListener("change", () => {
+      distorted = distortedToggle.checked;
+      applyConfig();
+    });
+
+    fetchAndApplyConfig();
+  </script>
+</body>
+</html>
