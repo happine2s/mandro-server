@@ -1,11 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import os
-from dotenv import load_dotenv
 from app.routers import router as api_router
 from fastapi.staticfiles import StaticFiles
-
-load_dotenv()
 
 app = FastAPI(title="Mandro Server")
 app.include_router(api_router)
