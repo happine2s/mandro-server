@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 import os
 from dotenv import load_dotenv
 from app.routers import router as api_router
+from fastapi.staticfiles import StaticFiles
 
 load_dotenv()
 
@@ -20,6 +21,4 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-@app.get("/health")
-def health():
-    return {"status": "ok"}
+app.mount("/static", StaticFiles(directory="app/static"), name="static")
