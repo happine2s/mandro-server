@@ -1,33 +1,18 @@
-from fastapi import APIRouter, Response
-import os
+from fastapi import APIRouter, Response, HTTPException
 import threading
 import cv2
-from app.camera.capture import open_camera, capture_frame
 
-CAM_MODE = os.getenv("CAM_MODE", "raspberry")
+from app.camera.manager import get_camera, capture_frame
 
 router = APIRouter(prefix="/camera", tags=["Camera"])
-
-_cam = None
 _lock = threading.Lock()
 
-@router.on_event("startup")
-def startup():
-    global _cam
-    if _cam is None:
-        _cam = open_camera()
-
-@router.get("/status")
-def status():
-    return {"camera": "ready", "mode": CAM_MODE}
-
-@router.get("/frame")
-def get_frame():
-    global _cam
-    with _lock:
-        frame = capture_frame(_cam)
-    _, jpg = cv2.imencode(".jpg", frame)
-    return Response(content=jpg.tobytes(), media_type="image/jpeg")
-
-def get_camera():
-    return _cam
+@router.get("/{index}/frame")
+def get_frame(index: int):
+    try:
+        with _lock:
+            frame = capture_frame(index)
+        _, jpg = cv2.imencode(".jpg", frame)
+        return Response(content=jpg.tobytes(), media_type="image/jpeg")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Camera {index} error: {str(e)}")
