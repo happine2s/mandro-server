@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-router = APIRouter()
+router = APIRouter(prefix="", tags=["Config"])
 
 @router.get("/config")
 def get_config():
