@@ -15,21 +15,10 @@ else:
 
 router = APIRouter(prefix="/ws", tags=["Streaming"])
 
-_cam = open_camera()
+_cam = None
 _lock = threading.Lock()
 
 @router.websocket("/stream")
 async def stream(websocket: WebSocket):
     await websocket.accept()
-    try:
-        while True:
-            with _lock:
-                frame = capture_frame(_cam)
-
-            _, jpg = cv2.imencode(".jpg", frame)
-            b64 = base64.b64encode(jpg.tobytes()).decode("utf-8")
-            await websocket.send_text(b64)
-
-            await asyncio.sleep(0.1)
-    except WebSocketDisconnect:
-        print("Client disconnected")
+    await websocket.send_text("connected")
