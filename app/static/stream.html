@@ -1,25 +1,117 @@
-<!-- app/static/stream.html -->
 <!DOCTYPE html>
-<html>
+<html lang="ko">
 <head>
-  <title>Dual Camera Stream</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>>Dual Camera Stream</title>
+  <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      background: black;
+      color: white;
+      height: 100vh;
+      width: 100vw;
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .container {
+      display: flex;
+      gap: 20px;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+      height: 100%;
+    }
+
+    .vertical {
+      flex-direction: column;
+    }
+
+    .camera {
+      object-fit: contain;
+      max-width: 48vw;
+      max-height: 100vh;
+      border-radius: 8px;
+      transition: all 0.3s ease;
+      transform: var(--rotate, none) var(--shift, none);
+    }
+
+    .rotated {
+      --rotate: rotate(90deg);
+    }
+  </style>
 </head>
 <body>
-  <h2>Camera 0</h2>
-  <img id="cam0" width="640" height="480"/>
-  <h2>Camera 1</h2>
-  <img id="cam1" width="640" height="480"/>
+  <div id="app" class="container">
+    <img id="cam0" alt="Camera 0" class="camera" />
+    <img id="cam1" alt="Camera 1" class="camera" />
+  </div>
 
   <script>
-    function connect(index) {
-      const ws = new WebSocket(`ws://${location.hostname}:8011/ws/stream/${index}`);
-      const img = document.getElementById(`cam${index}`);
-      ws.onmessage = (event) => {
-        img.src = "data:image/jpeg;base64," + event.data;
-      };
+    const cam0 = document.getElementById("cam0");
+    const cam1 = document.getElementById("cam1");
+    const app = document.getElementById("app");
+
+    const checkOrientation = () => {
+      const isLandscape = window.innerWidth > window.innerHeight;
+      app.classList.toggle("vertical", !isLandscape);
+      cam0.classList.toggle("rotated", !isLandscape);
+      cam1.classList.toggle("rotated", !isLandscape);
+    };
+
+    window.addEventListener("resize", checkOrientation);
+    checkOrientation();
+
+    const wsScheme = location.protocol === 'https:' ? 'wss' : 'ws';
+    const ws0 = new WebSocket(`${wsScheme}://${location.host}/ws/stream/0`);
+    const ws1 = new WebSocket(`${wsScheme}://${location.host}/ws/stream/1`);
+
+    ws0.onmessage = (event) => {
+      cam0.src = "data:image/jpeg;base64," + event.data;
+    };
+
+    ws1.onmessage = (event) => {
+      cam1.src = "data:image/jpeg;base64," + event.data;
+    };
+
+    ws0.onopen = () => console.log("ws0 connected");
+    ws1.onopen = () => console.log("ws1 connected");
+
+    function goFullscreen() {
+      const elem = document.documentElement;
+      if (elem.requestFullscreen) {
+        elem.requestFullscreen();
+      } else if (elem.webkitRequestFullscreen) {
+        elem.webkitRequestFullscreen();
+      } else if (elem.msRequestFullscreen) {
+        elem.msRequestFullscreen();
+      }
     }
-    connect(0);
-    connect(1);
+
+    document.body.addEventListener("click", goFullscreen, { once: true });
+
+    async function fetchAndApplyConfig() {
+      try {
+        const res = await fetch("/config");
+        const config = await res.json();
+
+        const left = config.left || 0;
+        const right = config.right || 0;
+
+        cam0.style.setProperty('--shift', `translateX(${left}px)`);
+        cam1.style.setProperty('--shift', `translateX(${right}px)`);
+
+        console.log("[CONFIG APPLIED]", config);
+      } catch (e) {
+        console.error("Failed to fetch /config", e);
+      }
+    }
+
+    fetchAndApplyConfig();
   </script>
 </body>
 </html>
