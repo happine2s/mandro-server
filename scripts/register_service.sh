@@ -5,20 +5,19 @@ log() {
     echo -e "\n[ $(date '+%Y-%m-%d %H:%M:%S') ] $1"
 }
 
-dir=$1
-svc=$2
-port=$3
+svc=$1
+port=$2
 
 # 인자가 비어있는지 확인
-if [ -z "${dir}" ] || [ -z "${svc}" ] || [ -z "${port}" ]; then
-    echo "실행방법; $0 <프로젝트 폴더명> <서비스명> <포트번호>"
+if [ -z "${svc}" ] || [ -z "${port}" ]; then
+    echo "실행방법; $0 <서비스명> <포트번호>"
     exit 1
 fi
-log "스크립트 시작 - 프로젝트 폴더명: ${dir}, 서비스: ${svc}, 포트: ${port}"
+log "스크립트 시작 - 서비스: ${svc}, 포트: ${port}"
 
 
 # uvicorn 설치 경로 어딘지 저장
-cd "/home/$(whoami)/Desktop/${dir}"
+cd "/home/$(whoami)/Desktop/mandro-server"
 source venv/bin/activate
 
 uvicorn_path=$(which uvicorn)
@@ -38,7 +37,7 @@ Description=Mandro FastAPI Server
 After=network.target
 
 [Service]
-WorkingDirectory=/home/$(whoami)/Desktop/${dir}
+WorkingDirectory=/home/$(whoami)/Desktop/mandro-server
 ExecStart=${uvicorn_path} app.main:app \
   --host 0.0.0.0 \
   --port ${port}
