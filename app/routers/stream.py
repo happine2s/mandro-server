@@ -21,8 +21,8 @@ async def stream_camera(websocket: WebSocket, index: int):
         while True:
             frame = camera_manager.get_frame(index)
             _, jpeg = cv2.imencode('.jpg', frame)
-            encoded = base64.b64encode(jpeg.tobytes()).decode('utf-8')
-            await websocket.send_text(encoded)
-            await asyncio.sleep(0.03)
+            await websocket.send_bytes(jpeg.tobytes())
+            await asyncio.sleep(0.01)
     except Exception:
         await websocket.close()
+
