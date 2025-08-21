@@ -97,11 +97,21 @@
     const ws0 = new WebSocket(`${wsScheme}://${location.host}/ws/stream/0`);
     const ws1 = new WebSocket(`${wsScheme}://${location.host}/ws/stream/1`);
 
+    ws0.binaryType = "arraybuffer";
+    ws1.binaryType = "arraybuffer";
+
     ws0.onmessage = (event) => {
-      cam0.src = "data:image/jpeg;base64," + event.data;
+      const blob = new Blob([event.data], { type: "image/jpeg" });
+      const url = URL.createObjectURL(blob);
+      cam0.src = url;
+      cam0.onload = () => URL.revokeObjectURL(url);
     };
+
     ws1.onmessage = (event) => {
-      cam1.src = "data:image/jpeg;base64," + event.data;
+      const blob = new Blob([event.data], { type: "image/jpeg" });
+      const url = URL.createObjectURL(blob);
+      cam1.src = url;
+      cam1.onload = () => URL.revokeObjectURL(url);
     };
 
     document.body.addEventListener("click", () => {
