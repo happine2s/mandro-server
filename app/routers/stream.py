@@ -18,13 +18,13 @@ def get_stream_page():
 async def stream_camera(websocket: WebSocket, index: int):
     await websocket.accept()
     try:
+        encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), 95]
         while True:
             frame = camera_manager.get_frame(index)
-            ret, jpeg = cv2.imencode('.jpg', frame)
+            ret, jpeg = cv2.imencode('.jpg', frame, encode_param)
             if not ret:
                 continue
             await websocket.send_bytes(jpeg.tobytes())
             await asyncio.sleep(0.01)
     except Exception:
         await websocket.close()
-

@@ -7,7 +7,7 @@ class CameraManager:
         self.cameras = [Picamera2(0), Picamera2(1)]
         self.locks = [Lock(), Lock()]
         for cam in self.cameras:
-            config = cam.create_video_configuration(main={"size": (640, 480)})
+            config = cam.create_video_configuration(main={"size": (960, 540)})
             cam.configure(config)
             cam.start()
 
