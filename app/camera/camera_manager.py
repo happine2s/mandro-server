@@ -1,5 +1,6 @@
 from picamera2 import Picamera2
 from threading import Lock
+import cv2
 
 class CameraManager:
     def __init__(self):
@@ -13,4 +14,5 @@ class CameraManager:
     def get_frame(self, index: int):
         with self.locks[index]:
             frame = self.cameras[index].capture_array()
+        frame = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
         return frame
