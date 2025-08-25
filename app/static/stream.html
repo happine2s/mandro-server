@@ -25,6 +25,7 @@
       align-items: center;
       gap: 0;
       flex: 1;
+      height: 100%;
     }
 
     .camera {
@@ -41,6 +42,11 @@
     }
 
     .controls {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      box-sizing: border-box;
       padding: 10px;
       background: #111;
       color: white;
@@ -50,6 +56,7 @@
       opacity: 1;
       transform: translateY(0);
       transition: opacity 0.5s ease, transform 0.5s ease;
+      z-index: 10;
     }
 
     .controls.hidden {
