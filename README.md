@@ -52,7 +52,11 @@ mandro-server/
 │   ├── camera/
 │   │   └── camera_manager.py  # Picamera2 제어
 │   └── static/
-│       └── stream.html        # 스트리밍 UI
+│       ├── stream.html        # 스트리밍 UI
+│       ├── css/
+│       │   └── style.css
+│       └── js/
+│           └── app.js
 ├── scripts/
 │   ├── register_service.sh    # systemd 서비스 등록 및 실행
 │   ├── setup_env.sh           # 환경 세팅 (apt, pip, venv 등)
