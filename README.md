@@ -9,18 +9,18 @@
 Raspberry Pi와 FastAPI를 이용해 **듀얼 카메라 스트리밍 서버**를 구성합니다.  
 제공된 스크립트(`setup_korean.sh`, `setup_env.sh`, `register_service.sh`)로 환경을 구성할 수 있으며, 이후 systemd 서비스로 등록되어 부팅 시 자동 실행됩니다.
 
-카메라 영상은 WebSocket을 통해 실시간으로 스트리밍되며, `/config` API로 간격(gap)과 좌우 반전(distorted) 설정을 제어할 수 있습니다.  
+카메라 영상은 WebSocket을 통해 실시간으로 스트리밍되며, `/config` API로 카메라 간격(gap)과 좌우 반전(distorted), 순서(order) 설정을 제어할 수 있습니다.  
 또한 `/health`, `/version` API를 제공해 서버 상태와 버전을 확인할 수 있습니다.
 
 
 ## 🚀 주요 기능
 
 - **실시간 카메라 스트리밍**
-  - WebSocket(`/ws/stream/0`, `/ws/stream/1`)을 통해 Base64 JPEG 전송
+  - WebSocket(`/ws/stream/0`, `/ws/stream/1`)을 통해 바이너리 전송
 - **보정값 설정**
   - `POST /config` (Form 데이터)
   - `GET /config`
-  - gap(px 단위 간격), 좌우반전(distorted) 값 적용
+  - gap(px단위), 좌우 반전(distorted), 카메라 순서("01" | "10") 값 적용
 - **health 체킹**
   - `GET /health` → `{ "status": "ok" }`
   - `GET /version` → `{ "project": "camera", "mode": "V1" }`
@@ -37,7 +37,7 @@ Raspberry Pi와 FastAPI를 이용해 **듀얼 카메라 스트리밍 서버**를
 | **빌드/운영** | systemd, Bash Shell Script |
 
 ## 🗺️ 아키텍처 다이어그램
-![mandro](https://github.com/user-attachments/assets/a42afb2d-4d1e-4083-8b8f-c9ad35eabb6c)
+![mandro (1)](https://github.com/user-attachments/assets/ed9564c3-a10d-46e7-84fc-8a5825109512)
 
 
 ## 📂 프로젝트 구조
