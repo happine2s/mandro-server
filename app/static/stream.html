@@ -29,9 +29,9 @@
     }
 
     .camera {
-      flex: 0 1 auto;           /* 크기 자동 */
-      max-width: 45%;           /* 두 개가 합쳐서 중앙 차지 */
-      max-height: 90%;          /* 화면 꽉 차지 않게 */
+      flex: 0 1 auto;
+      max-width: 45%;
+      max-height: 90%;
       object-fit: contain;
       border-radius: 8px;
       transition: all 0.3s ease;
@@ -63,6 +63,26 @@
       opacity: 0;
       transform: translateY(-100%);
       pointer-events: none;
+    }
+
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,0.8);
+      color: #fff;
+      padding: 10px 20px;
+      border-radius: 6px;
+      font-size: 14px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.5s ease;
+      z-index: 100;
+    }
+
+    .toast.show {
+      opacity: 1;
     }
 
     input[type="range"] {
@@ -181,16 +201,18 @@
 
     // 저장 버튼 클릭 → 서버에 POST 요청
     saveBtn.addEventListener("click", async () => {
-      const formData = new FormData();
-      formData.append("gap", gapSlider.value);
-      formData.append("distorted", distortedToggle.checked);
-      formData.append("order", cameraOrder);
+    const formData = new FormData();
+    formData.append("gap", gapSlider.value);
+    formData.append("distorted", distortedToggle.checked);
+    formData.append("order", cameraOrder);
 
-      try {
-        const res = await fetch("/config", {
-          method: "POST",
-          body: formData,
-        });
+    try {
+      const res = await fetch("/config", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (res.ok) {
         const result = await res.json();
         console.log("Saved:", result);
 
@@ -199,10 +221,33 @@
         gapValue.textContent = gap;
 
         applyConfig();
-      } catch (e) {
-        console.error("Failed to save config", e);
+
+        showToast("설정이 저장되었습니다.");
+      } else {
+        showToast("저장 실패했습니다. 서버 오류");
       }
-    });
+    } catch (e) {
+      console.error("Failed to save config", e);
+      showToast("저장 실패했습니다. 네트워크 오류");
+    }
+  });
+
+
+    function showToast(message) {
+      const toast = document.createElement("div");
+      toast.className = "toast";
+      toast.textContent = message;
+      document.body.appendChild(toast);
+
+      // 애니메이션 시작
+      setTimeout(() => toast.classList.add("show"), 10);
+
+      // 2.5초 후 사라짐
+      setTimeout(() => {
+        toast.classList.remove("show");
+        setTimeout(() => document.body.removeChild(toast), 500);
+      }, 2500);
+    }
 
     // 슬라이더 변경 시 UI 실시간 반영
     gapSlider.addEventListener("input", () => {
