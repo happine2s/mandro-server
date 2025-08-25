@@ -222,6 +222,23 @@
     });
 
     fetchAndApplyConfig();
+
+    // 모바일에서만 자동 숨김 기능
+    const isMobile = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+    let hideTimeout;
+
+    if (isMobile) {
+      function showControls() {
+        controls.classList.remove("hidden");
+        clearTimeout(hideTimeout);
+        hideTimeout = setTimeout(() => {
+          controls.classList.add("hidden");
+        }, 3000);
+      }
+
+      window.addEventListener("load", showControls);
+      document.addEventListener("touchstart", showControls);
+    }
   </script>
 </body>
 </html>
