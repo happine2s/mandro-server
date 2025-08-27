@@ -22,18 +22,19 @@ html, body {
 }
 
 .camera {
-    flex: 0 1 auto;
-    max-width: 45%;
-    max-height: 90%;
-    object-fit: contain;
-    border-radius: 8px;
+    width: 50vw;
+    height: 100vh;
+    object-fit: cover;       /* 비율 유지, 여백 대신 크롭 */
+    border-radius: 0;        /* 테두리 둥근 거 빼고 싶으면 0 */
     transition: all 0.3s ease;
+    transform-origin: center center;
 }
 
 .vertical {
     flex-direction: column;
 }
 
+/* 컨트롤 바 */
 .controls {
     position: absolute;
     top: 0;
@@ -44,12 +45,15 @@ html, body {
     background: #111;
     color: white;
     display: flex;
-    gap: 20px;
+    gap: 10px;
     align-items: center;
     opacity: 1;
     transform: translateY(0);
     transition: opacity 0.5s ease, transform 0.5s ease;
     z-index: 10;
+
+    overflow-x: auto;     /* 모바일에서 넘칠 때 스크롤 */
+    white-space: nowrap;  /* 줄바꿈 방지 */
 }
 
 .controls.hidden {
@@ -58,6 +62,7 @@ html, body {
     pointer-events: none;
 }
 
+/* 토스트 메시지 */
 .toast {
     position: fixed;
     bottom: 20px;
@@ -78,6 +83,26 @@ html, body {
     opacity: 1;
 }
 
+/* 슬라이더 */
 input[type="range"] {
     width: 200px;
+}
+
+/* 간격 값 텍스트 숨김 */
+#gapValue {
+  display: none !important;
+  visibility: hidden !important;
+}
+
+/* 모바일: 위아래 반반 */
+@media (max-width: 768px) {
+  .container {
+    flex-direction: column;
+  }
+
+  .camera {
+    width: 100vw;
+    height: 50vh;
+    object-fit: cover;
+  }
 }

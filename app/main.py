@@ -3,8 +3,12 @@ from fastapi.middleware.cors import CORSMiddleware
 import os
 from app.routers import router as api_router
 from fastapi.staticfiles import StaticFiles
+from app.services import config_service
 
 app = FastAPI(title="Mandro Server")
+
+config_service.load_config()
+
 app.include_router(api_router)
 
 allow_origins = os.getenv("CORS_ALLOW_ORIGINS", "*")
