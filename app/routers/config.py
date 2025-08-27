@@ -5,7 +5,7 @@ router = APIRouter(prefix="", tags=["Config"])
 
 @router.get("/config")
 def get_config():
-    return config_data
+    return config_service.get_config()
 
 
 @router.post("/config")
