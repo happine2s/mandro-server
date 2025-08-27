@@ -10,6 +10,11 @@ config_data = {
     "cameras": {
         "cam0": {"order": 1, "rotation": 0, "flipped": False},
         "cam1": {"order": 2, "rotation": 0, "flipped": False}
+    },
+    "stream": {
+        "resolution": [640, 480],
+        "quality": 80,
+        "fps": 30
     }
 }
 
@@ -27,9 +32,11 @@ def save_config():
 def get_config():
     return config_data
 
-def update_config(gap: int, cam0: dict, cam1: dict):
+def update_config(gap: int, cam0: dict, cam1: dict, stream: dict):
     config_data["gap"] = gap
     config_data["cameras"]["cam0"].update(cam0)
     config_data["cameras"]["cam1"].update(cam1)
+    config_data["stream"].update(stream)
     save_config()
     return config_data
+

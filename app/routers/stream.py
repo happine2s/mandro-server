@@ -2,6 +2,7 @@ from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 import cv2, asyncio
 from app.camera.camera_manager import CameraManager
 from fastapi.responses import HTMLResponse
+from app.services import config_service
 
 router = APIRouter(prefix="", tags=["Stream"])
 camera_manager = CameraManager()
@@ -14,20 +15,19 @@ def get_stream_page():
 @router.websocket("/ws/stream/{index}")
 async def stream_camera(websocket: WebSocket, index: int):
     await websocket.accept()
-    encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), 95]
-
     try:
         while True:
-            frame = camera_manager.get_frame(index)
-            ret, jpeg = cv2.imencode('.jpg', frame, encode_param)
+            conf = config_service.get_config()["stream"]
+            width, height = conf["resolution"]
+            quality = conf["quality"]
+            fps = conf["fps"]
+
+            frame = camera_manager.get_frame(index, (width, height))
+            ret, jpeg = cv2.imencode('.jpg', frame, [int(cv2.IMWRITE_JPEG_QUALITY), quality])
             if not ret:
                 continue
+
             await websocket.send_bytes(jpeg.tobytes())
-            await asyncio.sleep(0.01)
+            await asyncio.sleep(1 / fps)
     except WebSocketDisconnect:
-        print(f"Camera {index} WebSocket disconnected")
-    except Exception as e:
-        print(f"Error in stream_camera({index}):", e)
-    finally:
-        if not websocket.client_state.name == "DISCONNECTED":
-            await websocket.close()
+        print(f"🔌 Camera {index} WebSocket disconnected")
