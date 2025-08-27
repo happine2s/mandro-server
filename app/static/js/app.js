@@ -4,7 +4,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const gapSlider = document.getElementById("gapSlider");
   const gapValue = document.getElementById("gapValue");
 
-  // 상태를 JS에서도 관리
+  // 상태를 JS에서 관리
   let cameraState = {
     gap: 0,
     cameras: {
@@ -13,20 +13,42 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   };
 
-  // 📌 1. 서버에서 설정 불러오기
-  async function loadConfig() {
-    const res = await fetch("/config");
-    const data = await res.json();
-    cameraState = data;
+  // 카메라 WebSocket 연결
+  function connectCamera(index) {
+    const ws = new WebSocket(`ws://${location.host}/ws/stream/${index}`);
+    const img = document.getElementById(`cam${index}`);
 
-    // gap 반영
-    gapSlider.value = cameraState.gap;
-    gapValue.textContent = cameraState.gap;
+    ws.binaryType = "arraybuffer";
+    ws.onmessage = (event) => {
+      const bytes = new Uint8Array(event.data);
+      const blob = new Blob([bytes], { type: "image/jpeg" });
+      img.src = URL.createObjectURL(blob);
+    };
 
-    applyCameraStyles();
+    ws.onclose = () => {
+      console.warn(`Camera ${index} 연결 종료됨, 재연결 시도...`);
+      setTimeout(() => connectCamera(index), 2000);
+    };
   }
 
-  // 📌 2. DOM에 상태 반영
+  // 서버에서 설정 불러오기
+  async function loadConfig() {
+    try {
+      const res = await fetch("/config");
+      const data = await res.json();
+      cameraState = data;
+
+      gapSlider.value = cameraState.gap;
+      gapValue.textContent = cameraState.gap;
+      document.querySelector(".container").style.gap = `${cameraState.gap}px`;
+
+      applyCameraStyles();
+    } catch (err) {
+      console.error("설정 불러오기 실패:", err);
+    }
+  }
+
+  // 카메라 상태 저장
   function applyCameraStyles() {
     Object.entries(cameraState.cameras).forEach(([id, state]) => {
       const cam = document.getElementById(id);
@@ -38,7 +60,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // 📌 이벤트 핸들러
+  // 이벤트 핸들러
   gapSlider.addEventListener("input", (e) => {
     cameraState.gap = parseInt(e.target.value, 10);
     gapValue.textContent = cameraState.gap;
@@ -56,7 +78,6 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   document.getElementById("distortedToggle").addEventListener("change", (e) => {
-    // 좌우 반전 → 두 카메라 모두 적용한다고 가정
     cameraState.cameras.cam0.flipped = e.target.checked;
     cameraState.cameras.cam1.flipped = e.target.checked;
     applyCameraStyles();
@@ -73,27 +94,49 @@ document.addEventListener("DOMContentLoaded", () => {
     applyCameraStyles();
   });
 
-  // 📌 3. 서버에 저장
+  // 설정 사항 서버에 저장
   document.getElementById("saveBtn").addEventListener("click", async () => {
-    const formData = new FormData();
-    formData.append("gap", cameraState.gap);
+    try {
+      const formData = new FormData();
+      formData.append("gap", cameraState.gap);
 
-    formData.append("cam0_order", cameraState.cameras.cam0.order);
-    formData.append("cam0_rotation", cameraState.cameras.cam0.rotation);
-    formData.append("cam0_flipped", cameraState.cameras.cam0.flipped);
+      formData.append("cam0_order", cameraState.cameras.cam0.order);
+      formData.append("cam0_rotation", cameraState.cameras.cam0.rotation);
+      formData.append("cam0_flipped", cameraState.cameras.cam0.flipped);
 
-    formData.append("cam1_order", cameraState.cameras.cam1.order);
-    formData.append("cam1_rotation", cameraState.cameras.cam1.rotation);
-    formData.append("cam1_flipped", cameraState.cameras.cam1.flipped);
+      formData.append("cam1_order", cameraState.cameras.cam1.order);
+      formData.append("cam1_rotation", cameraState.cameras.cam1.rotation);
+      formData.append("cam1_flipped", cameraState.cameras.cam1.flipped);
 
-    const res = await fetch("/config", {
-      method: "POST",
-      body: formData
-    });
-    const data = await res.json();
-    alert(data.message);
+      const res = await fetch("/config", {
+        method: "POST",
+        body: formData
+      });
+      const data = await res.json();
+
+      console.log("설정 저장 완료:", data);
+      showToast("설정이 저장되었습니다.");
+    } catch (err) {
+      console.error("저장 실패:", err);
+      showToast("저장 실패. 서버를 확인하세요.");
+    }
   });
 
-  // 페이지 로드 시 서버 상태 불러오기
+  // 토스트 메시지
+  function showToast(message) {
+    let toast = document.querySelector(".toast");
+    if (!toast) {
+      toast = document.createElement("div");
+      toast.className = "toast";
+      document.body.appendChild(toast);
+    }
+    toast.textContent = message;
+    toast.classList.add("show");
+    setTimeout(() => toast.classList.remove("show"), 2000);
+  }
+
+  // 실행
+  connectCamera(0);
+  connectCamera(1);
   loadConfig();
 });
