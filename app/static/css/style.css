@@ -106,3 +106,8 @@ input[type="range"] {
     object-fit: cover;
   }
 }
+
+button.active {
+  background-color: #444;
+  color: #0f0;
+}

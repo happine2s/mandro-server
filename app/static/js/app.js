@@ -54,7 +54,12 @@ document.addEventListener("DOMContentLoaded", () => {
       const [w, h] = cameraState.stream.resolution;
       document.getElementById("resolutionSelect").value = `${w}x${h}`;
 
+      // 순서 UI 값 동기화
+      const orderToggle = document.getElementById("orderToggle");
+      orderToggle.checked = (cameraState.cameras.cam0.order === 2);
+
       applyCameraStyles();
+      updateFlipButtons();
     } catch (err) {
       console.error("설정 불러오기 실패:", err);
     }
@@ -70,6 +75,14 @@ document.addEventListener("DOMContentLoaded", () => {
         scaleX(${state.flipped ? -1 : 1})
       `;
     });
+  }
+
+  function updateFlipButtons() {
+    const btn0 = document.getElementById("flipCam0");
+    const btn1 = document.getElementById("flipCam1");
+
+    btn0.classList.toggle("active", cameraState.cameras.cam0.flipped);
+    btn1.classList.toggle("active", cameraState.cameras.cam1.flipped);
   }
 
   // 이벤트 핸들러
@@ -91,10 +104,17 @@ document.addEventListener("DOMContentLoaded", () => {
     applyCameraStyles();
   });
 
-  document.getElementById("distortedToggle").addEventListener("change", (e) => {
-    cameraState.cameras.cam0.flipped = e.target.checked;
-    cameraState.cameras.cam1.flipped = e.target.checked;
+  // 각 카메라별 반전 버튼
+  document.getElementById("flipCam0").addEventListener("click", () => {
+    cameraState.cameras.cam0.flipped = !cameraState.cameras.cam0.flipped;
     applyCameraStyles();
+    updateFlipButtons();
+  });
+
+  document.getElementById("flipCam1").addEventListener("click", () => {
+    cameraState.cameras.cam1.flipped = !cameraState.cameras.cam1.flipped;
+    applyCameraStyles();
+    updateFlipButtons();
   });
 
   document.getElementById("orderToggle").addEventListener("change", (e) => {
