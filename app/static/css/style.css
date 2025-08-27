@@ -28,6 +28,7 @@ html, body {
     object-fit: contain;
     border-radius: 8px;
     transition: all 0.3s ease;
+    transform-origin: center center;
 }
 
 .vertical {
