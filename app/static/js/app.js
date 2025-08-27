@@ -3,6 +3,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const cam1 = document.getElementById("cam1");
   const gapSlider = document.getElementById("gapSlider");
   const gapValue = document.getElementById("gapValue");
+  const controls = document.querySelector(".controls");
+  const isMobile = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+  let hideTimeout;
 
   // 상태를 JS에서 관리
   let cameraState = {
@@ -163,18 +166,16 @@ document.addEventListener("DOMContentLoaded", () => {
   connectCamera(1);
   loadConfig();
 
-  //화면 탭 시 controls 토글
-  const controls = document.querySelector(".controls");
-  let controlsVisible = true;
-
-  document.body.addEventListener("click", (e) => {
-    if (e.target.closest("#saveBtn")) return;
-
-    controlsVisible = !controlsVisible;
-    if (controlsVisible) {
+  if (isMobile) {
+    function showControls() {
       controls.classList.remove("hidden");
-    } else {
-      controls.classList.add("hidden");
+      clearTimeout(hideTimeout);
+      hideTimeout = setTimeout(() => {
+        controls.classList.add("hidden");
+      }, 3000); // 3초 후 숨김
     }
-  });
+
+    window.addEventListener("load", showControls);
+    document.addEventListener("touchstart", showControls);
+  }
 });
