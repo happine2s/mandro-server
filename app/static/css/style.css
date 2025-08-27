@@ -21,12 +21,11 @@ html, body {
     height: 100%;
 }
 
-/* PC 기본: 좌우 반반 */
 .camera {
-    width: 45vw;
-    height: 90vh;
-    object-fit: cover;
-    border-radius: 8px;
+    width: 50vw;
+    height: 100vh;
+    object-fit: cover;       /* 비율 유지, 여백 대신 크롭 */
+    border-radius: 0;        /* 테두리 둥근 거 빼고 싶으면 0 */
     transition: all 0.3s ease;
     transform-origin: center center;
 }
@@ -95,15 +94,15 @@ input[type="range"] {
   visibility: hidden !important;
 }
 
-/* 📱 모바일: 위아래 반반 */
+/* 모바일: 위아래 반반 */
 @media (max-width: 768px) {
   .container {
-    flex-direction: column; /* 세로 배치 */
+    flex-direction: column;
   }
 
   .camera {
-    width: 100%;   /* 가로 꽉 채움 */
-    height: 50dvh;  /* 화면 세로의 절반 */
-    object-fit: cover; /* 회전해도 꽉 차도록 */
+    width: 100vw;
+    height: 50vh;
+    object-fit: cover;
   }
 }
