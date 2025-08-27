@@ -3,6 +3,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const cam1 = document.getElementById("cam1");
   const gapSlider = document.getElementById("gapSlider");
   const gapValue = document.getElementById("gapValue");
+  const controls = document.querySelector(".controls");
+  const isMobile = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+  let hideTimeout;
 
   // 상태를 JS에서 관리
   let cameraState = {
@@ -10,6 +13,11 @@ document.addEventListener("DOMContentLoaded", () => {
     cameras: {
       cam0: { order: 1, rotation: 0, flipped: false },
       cam1: { order: 2, rotation: 0, flipped: false }
+    },
+    stream: {
+      resolution: [640, 480],
+      quality: 80,
+      fps: 30
     }
   };
 
@@ -42,13 +50,17 @@ document.addEventListener("DOMContentLoaded", () => {
       gapValue.textContent = cameraState.gap;
       document.querySelector(".container").style.gap = `${cameraState.gap}px`;
 
+      // 해상도 UI 값 동기화
+      const [w, h] = cameraState.stream.resolution;
+      document.getElementById("resolutionSelect").value = `${w}x${h}`;
+
       applyCameraStyles();
     } catch (err) {
       console.error("설정 불러오기 실패:", err);
     }
   }
 
-  // 카메라 상태 저장
+  // 카메라 상태 적용
   function applyCameraStyles() {
     Object.entries(cameraState.cameras).forEach(([id, state]) => {
       const cam = document.getElementById(id);
@@ -68,12 +80,14 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   document.getElementById("rotateCam0").addEventListener("click", () => {
-    cameraState.cameras.cam0.rotation = (cameraState.cameras.cam0.rotation + 90) % 360;
+    cameraState.cameras.cam0.rotation =
+      (cameraState.cameras.cam0.rotation + 90) % 360;
     applyCameraStyles();
   });
 
   document.getElementById("rotateCam1").addEventListener("click", () => {
-    cameraState.cameras.cam1.rotation = (cameraState.cameras.cam1.rotation + 90) % 360;
+    cameraState.cameras.cam1.rotation =
+      (cameraState.cameras.cam1.rotation + 90) % 360;
     applyCameraStyles();
   });
 
@@ -94,7 +108,13 @@ document.addEventListener("DOMContentLoaded", () => {
     applyCameraStyles();
   });
 
-  // 설정 사항 서버에 저장
+  // 해상도 이벤트 핸들러
+  document.getElementById("resolutionSelect").addEventListener("change", (e) => {
+    const [w, h] = e.target.value.split("x").map(Number);
+    cameraState.stream.resolution = [w, h];
+  });
+
+  // 서버에 설정 저장
   document.getElementById("saveBtn").addEventListener("click", async () => {
     try {
       const formData = new FormData();
@@ -108,9 +128,15 @@ document.addEventListener("DOMContentLoaded", () => {
       formData.append("cam1_rotation", cameraState.cameras.cam1.rotation);
       formData.append("cam1_flipped", cameraState.cameras.cam1.flipped);
 
+      // stream 관련 값 추가
+      formData.append("stream_width", cameraState.stream.resolution[0]);
+      formData.append("stream_height", cameraState.stream.resolution[1]);
+      formData.append("stream_quality", cameraState.stream.quality);
+      formData.append("stream_fps", cameraState.stream.fps);
+
       const res = await fetch("/config", {
         method: "POST",
-        body: formData
+        body: formData,
       });
       const data = await res.json();
 
@@ -139,4 +165,17 @@ document.addEventListener("DOMContentLoaded", () => {
   connectCamera(0);
   connectCamera(1);
   loadConfig();
+
+  if (isMobile) {
+    function showControls() {
+      controls.classList.remove("hidden");
+      clearTimeout(hideTimeout);
+      hideTimeout = setTimeout(() => {
+        controls.classList.add("hidden");
+      }, 3000); // 3초 후 숨김
+    }
+
+    window.addEventListener("load", showControls);
+    document.addEventListener("touchstart", showControls);
+  }
 });

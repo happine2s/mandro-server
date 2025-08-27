@@ -9,15 +9,22 @@
 </head>
 <body>
   <div class="controls">
-    <label>간격: <span id="gapValue">0</span></label>
+    <label>간격<span id="gapValue"></span></label>
     <input type="range" id="gapSlider" min="0" max="200" step="1" />
 
-    <label><input type="checkbox" id="distortedToggle" /> 좌우 반전</label>
-    <label><input type="checkbox" id="orderToggle" /> 순서 변경</label>
+    <label><input type="checkbox" id="distortedToggle" /> 반전 </label>
+    <label><input type="checkbox" id="orderToggle" /> 순서 </label>
 
     <button id="rotateCam0">Cam0 회전</button>
     <button id="rotateCam1">Cam1 회전</button>
 
+    <label>해상도:
+      <select id="resolutionSelect">
+        <option value="320x240">320×240</option>
+        <option value="640x480" selected>640×480</option>
+        <option value="960x720">960×720</option>
+      </select>
+    </label>
     <button id="saveBtn">저장</button>
   </div>
 
