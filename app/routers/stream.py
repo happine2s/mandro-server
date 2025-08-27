@@ -30,4 +30,4 @@ async def stream_camera(websocket: WebSocket, index: int):
             await websocket.send_bytes(jpeg.tobytes())
             await asyncio.sleep(1 / fps)
     except WebSocketDisconnect:
-        print(f"🔌 Camera {index} WebSocket disconnected")
+        print(f"Camera {index} WebSocket disconnected")
