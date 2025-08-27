@@ -21,9 +21,10 @@ html, body {
     height: 100%;
 }
 
+/* PC 기본: 좌우 반반 */
 .camera {
     width: 45vw;
-    height: 45vh;
+    height: 90vh;
     object-fit: cover;
     border-radius: 8px;
     transition: all 0.3s ease;
@@ -34,6 +35,7 @@ html, body {
     flex-direction: column;
 }
 
+/* 컨트롤 바 */
 .controls {
     position: absolute;
     top: 0;
@@ -50,8 +52,9 @@ html, body {
     transform: translateY(0);
     transition: opacity 0.5s ease, transform 0.5s ease;
     z-index: 10;
-    overflow-x: auto;
-    white-space: nowrap;
+
+    overflow-x: auto;     /* 모바일에서 넘칠 때 스크롤 */
+    white-space: nowrap;  /* 줄바꿈 방지 */
 }
 
 .controls.hidden {
@@ -60,6 +63,7 @@ html, body {
     pointer-events: none;
 }
 
+/* 토스트 메시지 */
 .toast {
     position: fixed;
     bottom: 20px;
@@ -80,11 +84,26 @@ html, body {
     opacity: 1;
 }
 
+/* 슬라이더 */
 input[type="range"] {
     width: 200px;
 }
 
+/* 간격 값 텍스트 숨김 */
 #gapValue {
   display: none !important;
   visibility: hidden !important;
+}
+
+/* 📱 모바일: 위아래 반반 */
+@media (max-width: 768px) {
+  .container {
+    flex-direction: column; /* 세로 배치 */
+  }
+
+  .camera {
+    width: 100%;   /* 가로 꽉 채움 */
+    height: 50dvh;  /* 화면 세로의 절반 */
+    object-fit: cover; /* 회전해도 꽉 차도록 */
+  }
 }
