@@ -31,7 +31,7 @@ Raspberry Pi와 FastAPI를 이용해 **듀얼 카메라 스트리밍 서버**를
   - `GET /health` → `{ "status": "ok" }`
   - `GET /version` → `{ "project": "camera", "mode": "V1" }`
 
-
+---
 ## 🛠 기술 스택
 
 | 구분         | 사용 기술 |
