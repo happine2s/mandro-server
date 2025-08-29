@@ -45,10 +45,10 @@ document.addEventListener("DOMContentLoaded", () => {
       const res = await fetch("/config");
       const data = await res.json();
       cameraState = data;
-
+      
+      // gap UI 동기화
       gapSlider.value = cameraState.gap;
       gapValue.textContent = cameraState.gap;
-      document.querySelector(".container").style.gap = `${cameraState.gap}px`;
 
       // 해상도 UI 값 동기화
       const [w, h] = cameraState.stream.resolution;
@@ -64,14 +64,57 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // 카메라 상태 적용
+  // 카메라 상태 적용 (order, rotation, gap, crop)
   function applyCameraStyles() {
+    const container = document.querySelector(".container");
+
+    // gap > 0 → flex gap, gap < 0 → crop 후 밀착
+    if (cameraState.gap > 0) {
+      container.style.gap = `${cameraState.gap}px`;
+    } else {
+      container.style.gap = "0px"; // 음수일 때는 밀착
+    }
+
     Object.entries(cameraState.cameras).forEach(([id, state]) => {
       const cam = document.getElementById(id);
+
+      // 순서 적용
       cam.style.order = state.order;
-      cam.style.transform = `
-        rotate(${state.rotation}deg)
-      `;
+
+      // 회전 적용
+      cam.style.transform = `rotate(${state.rotation}deg)`;
+
+      // @margin 초기화
+      cam.style.margin = "0";
+
+      // crop 적용 (gap < 0일 때만)
+      if (cameraState.gap < 0) {
+        const crop = Math.abs(cameraState.gap) / 2;
+        let top = 0, right = 0, bottom = 0, left = 0;
+
+        if (state.order === 1) { // 왼쪽 카메라
+          if (state.rotation === 0) right = crop;
+          if (state.rotation === 90) top = crop;
+          if (state.rotation === 180) left = crop;
+          if (state.rotation === 270) bottom = crop;
+          
+          // @왼쪽 카메라는 오른쪽으로 당김
+          cam.style.marginRight = `${cameraState.gap}px`;
+
+        } else { // 오른쪽 카메라
+          if (state.rotation === 0) left = crop;
+          if (state.rotation === 90) bottom = crop;
+          if (state.rotation === 180) right = crop;
+          if (state.rotation === 270) top = crop;
+
+          // @오른쪽 카메라는 왼쪽으로 당김
+          cam.style.marginLeft = `${cameraState.gap}px`;
+        }
+
+        cam.style.clipPath = `inset(${top}px ${right}px ${bottom}px ${left}px)`;
+      } else {
+        cam.style.clipPath = "none"; // crop 해제
+      }
     });
   }
 
@@ -79,7 +122,7 @@ document.addEventListener("DOMContentLoaded", () => {
   gapSlider.addEventListener("input", (e) => {
     cameraState.gap = parseInt(e.target.value, 10);
     gapValue.textContent = cameraState.gap;
-    document.querySelector(".container").style.gap = `${cameraState.gap}px`;
+    applyCameraStyles();
   });
 
   document.getElementById("rotateCam0").addEventListener("click", () => {
