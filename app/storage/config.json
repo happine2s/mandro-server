@@ -1,19 +1,19 @@
 {
-  "gap": 200,
+  "gap": 0,
   "cameras": {
     "cam0": {
       "order": 1,
-      "rotation": 270
+      "rotation": 0
     },
     "cam1": {
       "order": 2,
-      "rotation": 90
+      "rotation": 0
     }
   },
   "stream": {
     "resolution": [
-      960,
-      720
+      640,
+      480
     ],
     "quality": 80,
     "fps": 30
