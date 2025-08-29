@@ -11,8 +11,8 @@ document.addEventListener("DOMContentLoaded", () => {
   let cameraState = {
     gap: 0,
     cameras: {
-      cam0: { order: 1, rotation: 0, flipped: false },
-      cam1: { order: 2, rotation: 0, flipped: false }
+      cam0: { order: 1, rotation: 0 },
+      cam1: { order: 2, rotation: 0 }
     },
     stream: {
       resolution: [640, 480],
@@ -59,7 +59,6 @@ document.addEventListener("DOMContentLoaded", () => {
       orderToggle.checked = (cameraState.cameras.cam0.order === 2);
 
       applyCameraStyles();
-      updateFlipButtons();
     } catch (err) {
       console.error("설정 불러오기 실패:", err);
     }
@@ -72,17 +71,8 @@ document.addEventListener("DOMContentLoaded", () => {
       cam.style.order = state.order;
       cam.style.transform = `
         rotate(${state.rotation}deg)
-        scaleX(${state.flipped ? -1 : 1})
       `;
     });
-  }
-
-  function updateFlipButtons() {
-    const btn0 = document.getElementById("flipCam0");
-    const btn1 = document.getElementById("flipCam1");
-
-    btn0.classList.toggle("active", cameraState.cameras.cam0.flipped);
-    btn1.classList.toggle("active", cameraState.cameras.cam1.flipped);
   }
 
   // 이벤트 핸들러
@@ -102,19 +92,6 @@ document.addEventListener("DOMContentLoaded", () => {
     cameraState.cameras.cam1.rotation =
       (cameraState.cameras.cam1.rotation + 90) % 360;
     applyCameraStyles();
-  });
-
-  // 각 카메라별 반전 버튼
-  document.getElementById("flipCam0").addEventListener("click", () => {
-    cameraState.cameras.cam0.flipped = !cameraState.cameras.cam0.flipped;
-    applyCameraStyles();
-    updateFlipButtons();
-  });
-
-  document.getElementById("flipCam1").addEventListener("click", () => {
-    cameraState.cameras.cam1.flipped = !cameraState.cameras.cam1.flipped;
-    applyCameraStyles();
-    updateFlipButtons();
   });
 
   document.getElementById("orderToggle").addEventListener("change", (e) => {
@@ -142,11 +119,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
       formData.append("cam0_order", cameraState.cameras.cam0.order);
       formData.append("cam0_rotation", cameraState.cameras.cam0.rotation);
-      formData.append("cam0_flipped", cameraState.cameras.cam0.flipped);
 
       formData.append("cam1_order", cameraState.cameras.cam1.order);
       formData.append("cam1_rotation", cameraState.cameras.cam1.rotation);
-      formData.append("cam1_flipped", cameraState.cameras.cam1.flipped);
 
       // stream 관련 값 추가
       formData.append("stream_width", cameraState.stream.resolution[0]);
