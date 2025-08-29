@@ -3,17 +3,18 @@
   "cameras": {
     "cam0": {
       "order": 1,
-      "rotation": 0,
-      "flipped": false
+      "rotation": 0
     },
     "cam1": {
       "order": 2,
-      "rotation": 0,
-      "flipped": false
+      "rotation": 0
     }
   },
   "stream": {
-    "resolution": [640, 480],
+    "resolution": [
+      640,
+      480
+    ],
     "quality": 80,
     "fps": 30
   }

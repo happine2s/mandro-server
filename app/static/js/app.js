@@ -11,8 +11,8 @@ document.addEventListener("DOMContentLoaded", () => {
   let cameraState = {
     gap: 0,
     cameras: {
-      cam0: { order: 1, rotation: 0, flipped: false },
-      cam1: { order: 2, rotation: 0, flipped: false }
+      cam0: { order: 1, rotation: 0 },
+      cam1: { order: 2, rotation: 0 }
     },
     stream: {
       resolution: [640, 480],
@@ -45,10 +45,10 @@ document.addEventListener("DOMContentLoaded", () => {
       const res = await fetch("/config");
       const data = await res.json();
       cameraState = data;
-
+      
+      // gap UI 동기화
       gapSlider.value = cameraState.gap;
       gapValue.textContent = cameraState.gap;
-      document.querySelector(".container").style.gap = `${cameraState.gap}px`;
 
       // 해상도 UI 값 동기화
       const [w, h] = cameraState.stream.resolution;
@@ -59,37 +59,66 @@ document.addEventListener("DOMContentLoaded", () => {
       orderToggle.checked = (cameraState.cameras.cam0.order === 2);
 
       applyCameraStyles();
-      updateFlipButtons();
     } catch (err) {
       console.error("설정 불러오기 실패:", err);
     }
   }
 
-  // 카메라 상태 적용
+  // 카메라 상태 적용 (order, rotation, gap, crop)
   function applyCameraStyles() {
+    const container = document.querySelector(".container");
+
+    // gap > 0 → flex gap, gap < 0 → crop 후 밀착
+    if (cameraState.gap > 0) {
+      document.documentElement.style.setProperty("--gap", `${cameraState.gap}px`);
+      document.documentElement.style.setProperty("--effective-gap", `${cameraState.gap}px`);
+      container.style.gap = `${cameraState.gap}px`;
+    } else {
+      document.documentElement.style.setProperty("--gap", `0px`);
+      document.documentElement.style.setProperty("--effective-gap", `${Math.abs(cameraState.gap)}px`);
+      container.style.gap = "0px";
+    }
+
     Object.entries(cameraState.cameras).forEach(([id, state]) => {
       const cam = document.getElementById(id);
+
+      // 순서 적용
       cam.style.order = state.order;
-      cam.style.transform = `
-        rotate(${state.rotation}deg)
-        scaleX(${state.flipped ? -1 : 1})
-      `;
+
+      // 회전 적용
+      cam.style.transform = `rotate(${state.rotation}deg)`;
+
+      // crop 적용 (gap < 0일 때만)
+      if (cameraState.gap <= 0) {
+        const crop = Math.abs(cameraState.gap) / 2;
+        let top = 0, right = 0, bottom = 0, left = 0;
+
+        if (state.order === 1) { // 왼쪽 카메라
+          if (state.rotation === 0) right = crop;
+          if (state.rotation === 90) top = crop;
+          if (state.rotation === 180) left = crop;
+          if (state.rotation === 270) bottom = crop;
+          cam.style.marginRight = `${-crop}px`;
+        } else { // 오른쪽 카메라
+          if (state.rotation === 0) left = crop;
+          if (state.rotation === 90) bottom = crop;
+          if (state.rotation === 180) right = crop;
+          if (state.rotation === 270) top = crop;
+          cam.style.marginLeft = `${-crop}px`;
+        }
+
+        cam.style.clipPath = `inset(${top}px ${right}px ${bottom}px ${left}px)`;
+      } else {
+        cam.style.clipPath = "none"; // crop 해제
+      }
     });
-  }
-
-  function updateFlipButtons() {
-    const btn0 = document.getElementById("flipCam0");
-    const btn1 = document.getElementById("flipCam1");
-
-    btn0.classList.toggle("active", cameraState.cameras.cam0.flipped);
-    btn1.classList.toggle("active", cameraState.cameras.cam1.flipped);
   }
 
   // 이벤트 핸들러
   gapSlider.addEventListener("input", (e) => {
     cameraState.gap = parseInt(e.target.value, 10);
     gapValue.textContent = cameraState.gap;
-    document.querySelector(".container").style.gap = `${cameraState.gap}px`;
+    applyCameraStyles();
   });
 
   document.getElementById("rotateCam0").addEventListener("click", () => {
@@ -102,19 +131,6 @@ document.addEventListener("DOMContentLoaded", () => {
     cameraState.cameras.cam1.rotation =
       (cameraState.cameras.cam1.rotation + 90) % 360;
     applyCameraStyles();
-  });
-
-  // 각 카메라별 반전 버튼
-  document.getElementById("flipCam0").addEventListener("click", () => {
-    cameraState.cameras.cam0.flipped = !cameraState.cameras.cam0.flipped;
-    applyCameraStyles();
-    updateFlipButtons();
-  });
-
-  document.getElementById("flipCam1").addEventListener("click", () => {
-    cameraState.cameras.cam1.flipped = !cameraState.cameras.cam1.flipped;
-    applyCameraStyles();
-    updateFlipButtons();
   });
 
   document.getElementById("orderToggle").addEventListener("change", (e) => {
@@ -142,11 +158,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
       formData.append("cam0_order", cameraState.cameras.cam0.order);
       formData.append("cam0_rotation", cameraState.cameras.cam0.rotation);
-      formData.append("cam0_flipped", cameraState.cameras.cam0.flipped);
 
       formData.append("cam1_order", cameraState.cameras.cam1.order);
       formData.append("cam1_rotation", cameraState.cameras.cam1.rotation);
-      formData.append("cam1_flipped", cameraState.cameras.cam1.flipped);
 
       // stream 관련 값 추가
       formData.append("stream_width", cameraState.stream.resolution[0]);
