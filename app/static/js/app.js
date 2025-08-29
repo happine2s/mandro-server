@@ -70,9 +70,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // gap > 0 → flex gap, gap < 0 → crop 후 밀착
     if (cameraState.gap > 0) {
+      document.documentElement.style.setProperty("--gap", `${cameraState.gap}px`);
+      document.documentElement.style.setProperty("--effective-gap", `${cameraState.gap}px`);
       container.style.gap = `${cameraState.gap}px`;
     } else {
-      container.style.gap = "0px"; // 음수일 때는 밀착
+      document.documentElement.style.setProperty("--gap", `0px`);
+      document.documentElement.style.setProperty("--effective-gap", `${Math.abs(cameraState.gap)}px`);
+      container.style.gap = "0px";
     }
 
     Object.entries(cameraState.cameras).forEach(([id, state]) => {
@@ -84,11 +88,8 @@ document.addEventListener("DOMContentLoaded", () => {
       // 회전 적용
       cam.style.transform = `rotate(${state.rotation}deg)`;
 
-      // @margin 초기화
-      cam.style.margin = "0";
-
       // crop 적용 (gap < 0일 때만)
-      if (cameraState.gap < 0) {
+      if (cameraState.gap <= 0) {
         const crop = Math.abs(cameraState.gap) / 2;
         let top = 0, right = 0, bottom = 0, left = 0;
 
@@ -97,18 +98,13 @@ document.addEventListener("DOMContentLoaded", () => {
           if (state.rotation === 90) top = crop;
           if (state.rotation === 180) left = crop;
           if (state.rotation === 270) bottom = crop;
-          
-          // @왼쪽 카메라는 오른쪽으로 당김
-          cam.style.marginRight = `${cameraState.gap}px`;
-
+          cam.style.marginRight = `${-crop}px`;
         } else { // 오른쪽 카메라
           if (state.rotation === 0) left = crop;
           if (state.rotation === 90) bottom = crop;
           if (state.rotation === 180) right = crop;
           if (state.rotation === 270) top = crop;
-
-          // @오른쪽 카메라는 왼쪽으로 당김
-          cam.style.marginLeft = `${cameraState.gap}px`;
+          cam.style.marginLeft = `${-crop}px`;
         }
 
         cam.style.clipPath = `inset(${top}px ${right}px ${bottom}px ${left}px)`;
