@@ -8,8 +8,8 @@ CONFIG_FILE = Path(CONFIG_PATH)
 config_data = {
     "gap": 76,
     "cameras": {
-        "cam0": {"order": 1, "rotation": 0, "flipped": False},
-        "cam1": {"order": 2, "rotation": 0, "flipped": False}
+        "cam0": {"order": 1, "rotation": 0},
+        "cam1": {"order": 2, "rotation": 0}
     },
     "stream": {
         "resolution": [640, 480],

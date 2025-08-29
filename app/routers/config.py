@@ -14,19 +14,17 @@ def update_config(
 
     cam0_order: int = Form(...),
     cam0_rotation: int = Form(...),
-    cam0_flipped: bool = Form(...),
 
     cam1_order: int = Form(...),
     cam1_rotation: int = Form(...),
-    cam1_flipped: bool = Form(...),
 
     stream_width: int = Form(...),
     stream_height: int = Form(...),
     stream_quality: int = Form(...),
     stream_fps: int = Form(...)
 ):
-    cam0 = {"order": cam0_order, "rotation": cam0_rotation, "flipped": cam0_flipped}
-    cam1 = {"order": cam1_order, "rotation": cam1_rotation, "flipped": cam1_flipped}
+    cam0 = {"order": cam0_order, "rotation": cam0_rotation}
+    cam1 = {"order": cam1_order, "rotation": cam1_rotation}
     stream = {
         "resolution": [stream_width, stream_height],
         "quality": stream_quality,
